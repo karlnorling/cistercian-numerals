@@ -31,6 +31,15 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
+      # GitHub Actions only *warns* when an action is passed an input it does not
+      # declare, so an action major bump that renames inputs fails silently. The
+      # release job only runs on main, so a PR would never show it. Fails on an
+      # undeclared input; deprecations only warn.
+      - name: Audit GitHub Action inputs
+        run: yarn audit-actions
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Check formatting (oxfmt)
         run: yarn format:check
 
@@ -51,3 +60,72 @@ jobs:
           node dist/bin.js 1993 | grep -q '<title>1993</title>'
           node -e "require('cistercian')" 
           node --input-type=module -e "import('cistercian/raster').then(m => m.toImage(1)).then(b => { if (!b.length) process.exit(1) })"
+
+  # ---------------------------------------------------------------------------
+  # Release: only on pushes to main, after quality passes.
+  #
+  # changesets/action opens or updates a "Version Packages" PR while unreleased
+  # changesets exist. Once that PR is merged, it publishes to npm and creates a
+  # tag and GitHub release.
+  #
+  # npm auth uses Trusted Publishers (OIDC), so there is no NPM_TOKEN secret. The
+  # repo must be registered on npmjs.com under the package's Settings → Trusted
+  # Publishers, with workflow ci.yml and environment main.
+  # ---------------------------------------------------------------------------
+  release:
+    name: Release
+    needs: quality
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    # Must match the environment name configured on npmjs.com as a Trusted Publisher.
+    environment: main
+
+    permissions:
+      contents: write # push version-bump commits and create GitHub Releases
+      pull-requests: write # open and update the Version Packages PR
+      id-token: write # obtain OIDC token for npm Trusted Publishers
+
+    steps:
+      # A GitHub App token, not GITHUB_TOKEN, so the Version Packages PR triggers CI.
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.CISTERCIAN_CLIENT_ID }}
+          private-key: ${{ secrets.CISTERCIAN_PRIVATE_KEY }}
+
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          # Full history so changesets can compare versions across tags.
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Enable Corepack (Yarn 4)
+        run: corepack enable
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Build
+        run: yarn build
+
+      - name: Create Version PR or Publish to npm
+        uses: changesets/action@v2
+        with:
+          # v2 takes the token as an input. Setting GITHUB_TOKEN in env does not configure it.
+          github-token: ${{ steps.app-token.outputs.token }}
+          # Yarn Berry's `yarn npm publish` can't do the npm OIDC exchange, so this
+          # script calls `npm publish` directly.
+          publish-script: bash scripts/publish.sh
+          # `changeset version` doesn't refresh yarn.lock, which would fail
+          # `yarn install --immutable` on the Version Packages PR.
+          version-script: yarn version-packages
+          create-github-releases: true

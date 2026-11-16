@@ -1025,6 +1025,7 @@ __metadata:
     typescript: "npm:^6.0.2"
     vite: "npm:^8.3.7"
     vitest: "npm:^5.0.0"
+    yaml: "npm:^2.9.1"
   peerDependencies:
     sharp: ">=0.33.0"
   peerDependenciesMeta:
@@ -2112,7 +2113,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yaml@npm:^2.9.0":
+"yaml@npm:^2.9.0, yaml@npm:^2.9.1":
   version: 2.9.1
   resolution: "yaml@npm:2.9.1"
   bin:
