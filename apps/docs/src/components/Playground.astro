@@ -462,6 +462,13 @@ const modes = [
     say('Link copied');
   });
 
+  // Example links on this page change only the hash, which doesn't reload the page.
+  window.addEventListener('hashchange', () => {
+    loadHash();
+    render();
+    stage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+
   loadHash();
   render();
 </script>
