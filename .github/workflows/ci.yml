@@ -141,3 +141,8 @@ jobs:
           # `yarn install --immutable` on the Version Packages PR.
           version-script: yarn version-packages
           create-github-releases: true
+        env:
+          # npm only lets you add a Trusted Publisher to a package that already exists,
+          # so the first publish uses this token. Once trusted publishing is set up, npm
+          # uses OIDC and this secret can be deleted.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_JS_AUTH }}
