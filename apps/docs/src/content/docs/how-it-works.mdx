@@ -1,0 +1,62 @@
+---
+title: How numbers are drawn
+description: The four corners of a Cistercian glyph, and how this library draws zero, large numbers, decimals and negatives.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+import Glyph from '../../components/Glyph.astro';
+import PlaceBuilder from '../../components/PlaceBuilder.astro';
+
+A Cistercian numeral is a vertical stem with one digit in each corner. Units go top right, tens top left, hundreds bottom right and thousands bottom left. The same nine strokes are mirrored into each corner.
+
+Move the sliders to build a number one digit at a time:
+
+<PlaceBuilder />
+
+## The nine digits
+
+The top row shows units, then each row below moves to the next corner.
+
+<div class="chart">
+  {[1, 10, 100, 1000].map((place) =>
+    [1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
+      <Glyph value={d * place} size={64} caption={String(d * place)} />
+    )),
+  )}
+</div>
+
+## Beyond 1 to 9999
+
+The monks wrote 1 to 9999. This library extends the system so every decimal number gets a drawing:
+
+| Input    | Drawn as        | Rule                                                              |
+| -------- | --------------- | ----------------------------------------------------------------- |
+| `0`      | a bare stem     | No digits, so no strokes.                                         |
+| `12345`  | `1` `2345`      | One glyph per four digits, like base 10000.                       |
+| `10000`  | `1` `0`         | Empty groups are bare stems, so the position is never lost.       |
+| `12.5`   | `12` · `5000`   | A dot on the baseline, then the fraction in groups of four.       |
+| `0.0005` | `0` · `5`       | Fraction groups count from the point, so `.5` and `.0005` differ. |
+| `-42`    | `42` with a bar | A horizontal bar across the middle of the first stem.             |
+
+<div class="row">
+  <Glyph value={0} caption="0" />
+  <Glyph value={10000} caption="10000" />
+  <Glyph value="12.5" caption="12.5" />
+  <Glyph value="0.0005" caption="0.0005" />
+  <Glyph value={-42} caption="-42" />
+</div>
+
+<Aside>
+  These extensions are modern; the monks didn't use them. Zero as a bare stem, the negative bar and
+  the glyph proportions follow
+  [akosnikhazy/cistercian-numerals](https://github.com/akosnikhazy/cistercian-numerals).
+</Aside>
+
+## Floats
+
+A JavaScript `number` is first written in its shortest exact form, so `0.1` draws as `0.1`. Arithmetic can leave float noise, and that gets drawn too: `0.1 + 0.2` is `0.30000000000000004`. Round first, or pass a string or `bigint` to keep every digit.
+
+<style>{`
+  .chart { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 0.5rem 0.25rem; justify-items: center; margin-block: 1rem; }
+  .row { display: flex; flex-wrap: wrap; gap: 1.5rem; margin-block: 1rem; }
+`}</style>

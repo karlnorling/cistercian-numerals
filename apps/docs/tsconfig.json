@@ -1,0 +1,8 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "paths": {
+      "@cistercian/core": ["../../packages/@cistercian/core/src/index.ts"]
+    }
+  }
+}

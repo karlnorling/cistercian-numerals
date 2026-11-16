@@ -1,0 +1,514 @@
+---
+// Type any number and see it drawn, with style controls, the glyph-by-glyph breakdown,
+// matching code, and downloads. State lives in the URL hash so a number can be shared.
+const presets = ['1993', '9999', '12345', '3.14159', '-42', '0', '2026.11', '1000000'];
+---
+
+<div class="playground not-content">
+  <form class="controls" id="pg-form" autocomplete="off">
+    <label class="number">
+      <span>Number</span>
+      <input
+        id="pg-value"
+        name="n"
+        type="text"
+        inputmode="decimal"
+        value="1993"
+        spellcheck="false"
+        aria-describedby="pg-error"
+      />
+    </label>
+    <p class="error" id="pg-error" role="alert" hidden></p>
+
+    <div class="presets" role="group" aria-label="Examples">
+      {presets.map((p) => <button type="button" data-preset={p}>{p}</button>)}
+      <button type="button" data-preset="random">Random</button>
+    </div>
+
+    <details open>
+      <summary>Style</summary>
+      <div class="grid">
+        <label>
+          <span>Size <output id="pg-size-out">160</output>px</span>
+          <input id="pg-size" name="size" type="range" min="40" max="400" step="4" value="160" />
+        </label>
+        <label>
+          <span>Stroke width <output id="pg-stroke-out">4</output></span>
+          <input id="pg-stroke" name="stroke" type="range" min="1" max="12" step="0.5" value="4" />
+        </label>
+        <label>
+          <span>Gap <output id="pg-gap-out">20</output></span>
+          <input id="pg-gap" name="gap" type="range" min="0" max="60" step="2" value="20" />
+        </label>
+        <label>
+          <span>Line caps</span>
+          <select id="pg-cap" name="cap">
+            <option value="round">Round</option>
+            <option value="square">Square</option>
+            <option value="butt">Butt</option>
+          </select>
+        </label>
+        <label class="colour">
+          <span>Colour</span>
+          <span class="row">
+            <input id="pg-theme" name="theme" type="checkbox" checked />
+            <span>Match theme</span>
+            <input id="pg-color" name="color" type="color" value="#7a2e0e" disabled />
+          </span>
+        </label>
+        <label class="colour">
+          <span>Background</span>
+          <span class="row">
+            <input id="pg-bg-on" name="bgOn" type="checkbox" />
+            <span>Fill</span>
+            <input id="pg-bg" name="bg" type="color" value="#f6efe3" disabled />
+          </span>
+        </label>
+      </div>
+    </details>
+  </form>
+
+  <div class="stage" id="pg-stage" aria-live="polite"></div>
+
+  <section class="breakdown" aria-labelledby="pg-breakdown-title">
+    <h3 id="pg-breakdown-title">Glyph by glyph</h3>
+    <ol class="groups" id="pg-groups"></ol>
+  </section>
+
+  <div class="actions">
+    <button type="button" data-download="svg">Download SVG</button>
+    <button type="button" data-download="png">PNG</button>
+    <button type="button" data-download="jpeg">JPEG</button>
+    <button type="button" data-download="webp">WebP</button>
+    <button type="button" id="pg-copy">Copy SVG</button>
+    <button type="button" id="pg-link">Copy link</button>
+    <span class="status" id="pg-status" role="status"></span>
+  </div>
+
+  <section class="code" aria-label="Code for this image">
+    <pre><code id="pg-code-js"></code></pre>
+    <pre><code id="pg-code-cli"></code></pre>
+  </section>
+</div>
+
+<script>
+  import { format, glyphStrokes, parse, toSvg, type SvgOptions } from '@cistercian/core';
+
+  const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+  const form = $<HTMLFormElement>('pg-form');
+  const value = $<HTMLInputElement>('pg-value');
+  const error = $<HTMLParagraphElement>('pg-error');
+  const size = $<HTMLInputElement>('pg-size');
+  const stroke = $<HTMLInputElement>('pg-stroke');
+  const gap = $<HTMLInputElement>('pg-gap');
+  const cap = $<HTMLSelectElement>('pg-cap');
+  const theme = $<HTMLInputElement>('pg-theme');
+  const color = $<HTMLInputElement>('pg-color');
+  const bgOn = $<HTMLInputElement>('pg-bg-on');
+  const bg = $<HTMLInputElement>('pg-bg');
+  const stage = $<HTMLDivElement>('pg-stage');
+  const groups = $<HTMLOListElement>('pg-groups');
+  const status = $<HTMLSpanElement>('pg-status');
+
+  const DEFAULTS = { size: '160', stroke: '4', gap: '20', cap: 'round' };
+  let current = { input: '1993', options: {} as SvgOptions };
+
+  function options(): SvgOptions {
+    return {
+      size: Number(size.value),
+      strokeWidth: Number(stroke.value),
+      gap: Number(gap.value),
+      linecap: cap.value as SvgOptions['linecap'],
+      color: theme.checked ? 'currentColor' : color.value,
+      background: bgOn.checked ? bg.value : undefined,
+    };
+  }
+
+  function render() {
+    color.disabled = theme.checked;
+    bg.disabled = !bgOn.checked;
+    $('pg-size-out').textContent = size.value;
+    $('pg-stroke-out').textContent = stroke.value;
+    $('pg-gap-out').textContent = gap.value;
+
+    const input = value.value.trim();
+    const opts = options();
+    let svg: string;
+    let parsed: ReturnType<typeof parse>;
+    try {
+      parsed = parse(input);
+      svg = toSvg(input, opts);
+    } catch (e) {
+      error.textContent = (e as Error).message;
+      error.hidden = false;
+      value.setAttribute('aria-invalid', 'true');
+      return;
+    }
+    error.hidden = true;
+    value.removeAttribute('aria-invalid');
+    current = { input, options: opts };
+    stage.innerHTML = svg;
+    renderGroups(parsed, opts);
+    renderCode(input, opts);
+    saveHash();
+  }
+
+  function renderGroups(parsed: ReturnType<typeof parse>, opts: SvgOptions) {
+    const item = (n: number, label: string, place: string, negative = false) =>
+      `<li>${miniGlyph(n, negative, opts)}<code>${label}</code><small>${place}</small></li>`;
+
+    const items: string[] = [];
+    const count = parsed.integer.length;
+    parsed.integer.forEach((n, i) => {
+      const label = i === 0 ? String(n) : String(n).padStart(4, '0');
+      const power = count - 1 - i;
+      const place = power === 0 ? 'ones' : `× 10000${power > 1 ? `<sup>${power}</sup>` : ''}`;
+      items.push(item(n, (i === 0 && parsed.negative ? '−' : '') + label, place, i === 0 && parsed.negative));
+    });
+    if (parsed.fraction.length > 0) {
+      items.push('<li class="dot" aria-label="decimal point"><span></span></li>');
+      parsed.fraction.forEach((n, i) => {
+        items.push(item(n, String(n).padStart(4, '0'), `÷ 10000${i > 0 ? `<sup>${i + 1}</sup>` : ''}`));
+      });
+    }
+    groups.innerHTML = items.join('');
+    groups.setAttribute('aria-label', `${format(parsed)} in ${count + parsed.fraction.length} glyphs`);
+  }
+
+  /** One glyph on its own, drawn from glyphStrokes so a negative zero group keeps its bar. */
+  function miniGlyph(n: number, negative: boolean, opts: SvgOptions) {
+    const d = glyphStrokes(n, { negative })
+      .map((line) => line.map(([x, y], i) => `${i ? 'L' : 'M'}${x * 20} ${y * 20}`).join(''))
+      .join('');
+    return (
+      `<svg viewBox="-30 -10 60 100" width="38" height="64" aria-hidden="true">` +
+      `<path d="${d}" fill="none" stroke="${opts.color}" stroke-width="${opts.strokeWidth}" ` +
+      `stroke-linecap="${opts.linecap}" stroke-linejoin="round"/></svg>`
+    );
+  }
+
+  function renderCode(input: string, opts: SvgOptions) {
+    const changed: string[] = [];
+    if (opts.size !== 100) changed.push(`size: ${opts.size}`);
+    if (opts.strokeWidth !== 4) changed.push(`strokeWidth: ${opts.strokeWidth}`);
+    if (opts.gap !== 20) changed.push(`gap: ${opts.gap}`);
+    if (opts.linecap !== 'round') changed.push(`linecap: '${opts.linecap}'`);
+    if (opts.color !== 'currentColor') changed.push(`color: '${opts.color}'`);
+    if (opts.background) changed.push(`background: '${opts.background}'`);
+    const arg = /^-?\d+(\.\d+)?$/.test(input) && input.replace(/^-/, '').length < 16 ? input : `'${input}'`;
+    $('pg-code-js').textContent =
+      `import { toSvg } from '@cistercian/core';\n\n` +
+      `const svg = toSvg(${arg}${changed.length ? `, { ${changed.join(', ')} }` : ''});`;
+
+    const flags = [`-o number.svg`, `--size ${opts.size}`];
+    if (opts.strokeWidth !== 4) flags.push(`--stroke-width ${opts.strokeWidth}`);
+    if (opts.color !== 'currentColor') flags.push(`--color '${opts.color}'`);
+    if (opts.background) flags.push(`--background '${opts.background}'`);
+    $('pg-code-cli').textContent = `npx @cistercian/cli ${input} ${flags.join(' ')}`;
+  }
+
+  // --- URL state -----------------------------------------------------------------------
+  function saveHash() {
+    const params = new URLSearchParams({ n: value.value.trim() });
+    if (size.value !== DEFAULTS.size) params.set('size', size.value);
+    if (stroke.value !== DEFAULTS.stroke) params.set('stroke', stroke.value);
+    if (gap.value !== DEFAULTS.gap) params.set('gap', gap.value);
+    if (cap.value !== DEFAULTS.cap) params.set('cap', cap.value);
+    if (!theme.checked) params.set('color', color.value);
+    if (bgOn.checked) params.set('bg', bg.value);
+    history.replaceState(null, '', `#${params}`);
+  }
+
+  function loadHash() {
+    const params = new URLSearchParams(location.hash.slice(1));
+    const set = (el: HTMLInputElement | HTMLSelectElement, key: string) => {
+      const v = params.get(key);
+      if (v !== null) el.value = v;
+    };
+    set(value, 'n');
+    set(size, 'size');
+    set(stroke, 'stroke');
+    set(gap, 'gap');
+    set(cap, 'cap');
+    if (params.has('color')) {
+      theme.checked = false;
+      set(color, 'color');
+    }
+    if (params.has('bg')) {
+      bgOn.checked = true;
+      set(bg, 'bg');
+    }
+  }
+
+  // --- Output --------------------------------------------------------------------------
+  /** The SVG with a concrete colour, since currentColor means nothing outside the page. */
+  function standaloneSvg() {
+    const resolved = getComputedStyle(stage).color;
+    const colour = current.options.color === 'currentColor' ? resolved : current.options.color;
+    return toSvg(current.input, { ...current.options, color: colour });
+  }
+
+  async function rasterise(type: 'png' | 'jpeg' | 'webp'): Promise<Blob> {
+    const svg = standaloneSvg();
+    const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+    try {
+      const img = new Image();
+      img.src = url;
+      await img.decode();
+      const scale = window.devicePixelRatio > 1 ? 2 : 1;
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.ceil(img.naturalWidth * scale);
+      canvas.height = Math.ceil(img.naturalHeight * scale);
+      const ctx = canvas.getContext('2d')!;
+      if (type === 'jpeg' && !current.options.background) {
+        ctx.fillStyle = '#ffffff'; // JPEG has no transparency
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, `image/${type}`, 0.92),
+      );
+      if (!blob || blob.type !== `image/${type}`) {
+        throw new Error(`This browser can't export ${type.toUpperCase()}`);
+      }
+      return blob;
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  function save(blob: Blob, ext: string) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `cistercian-${current.input.replace(/[^\d.-]/g, '') || 'number'}.${ext}`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+
+  function say(text: string) {
+    status.textContent = text;
+    setTimeout(() => {
+      if (status.textContent === text) status.textContent = '';
+    }, 2500);
+  }
+
+  // --- Events --------------------------------------------------------------------------
+  form.addEventListener('input', render);
+  form.addEventListener('submit', (e) => e.preventDefault());
+
+  document.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const preset = button.dataset.preset!;
+      value.value =
+        preset === 'random' ? String(Math.floor(Math.random() * 9999) + 1) : preset;
+      render();
+    });
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-download]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const type = button.dataset.download as 'svg' | 'png' | 'jpeg' | 'webp';
+      try {
+        if (type === 'svg') save(new Blob([standaloneSvg()], { type: 'image/svg+xml' }), 'svg');
+        else save(await rasterise(type), type === 'jpeg' ? 'jpg' : type);
+      } catch (e) {
+        say((e as Error).message);
+      }
+    });
+  });
+
+  $('pg-copy').addEventListener('click', async () => {
+    await navigator.clipboard.writeText(standaloneSvg());
+    say('SVG copied');
+  });
+  $('pg-link').addEventListener('click', async () => {
+    await navigator.clipboard.writeText(location.href);
+    say('Link copied');
+  });
+
+  loadHash();
+  render();
+</script>
+
+<style>
+  .playground {
+    display: grid;
+    /* minmax(0, …) so long code lines scroll inside their block, not the page. */
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+    margin-block: 1.5rem;
+  }
+  .controls {
+    display: grid;
+    gap: 0.75rem;
+  }
+  label {
+    display: grid;
+    gap: 0.25rem;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-2);
+  }
+  .number input {
+    font: 600 var(--sl-text-2xl) / 1.2 var(--sl-font-mono);
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.5rem;
+    background: var(--sl-color-black);
+    color: var(--sl-color-white);
+    width: 100%;
+  }
+  .number input[aria-invalid='true'] {
+    border-color: var(--sl-color-red);
+  }
+  .error {
+    margin: 0;
+    color: var(--sl-color-red);
+    font-size: var(--sl-text-sm);
+  }
+  .presets,
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  button {
+    font: inherit;
+    font-size: var(--sl-text-sm);
+    padding: 0.3rem 0.75rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 999px;
+    background: var(--sl-color-gray-6);
+    color: var(--sl-color-white);
+    cursor: pointer;
+  }
+  .presets button {
+    font-family: var(--sl-font-mono);
+  }
+  button:hover {
+    border-color: var(--sl-color-accent);
+  }
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  summary:focus-visible {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 2px;
+  }
+  details {
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+  }
+  summary {
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+    gap: 0.75rem 1.25rem;
+    margin-top: 0.75rem;
+  }
+  select {
+    font: inherit;
+    padding: 0.25rem;
+    background: var(--sl-color-black);
+    color: var(--sl-color-white);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.25rem;
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  input[type='color'] {
+    margin-left: auto;
+    inline-size: 2.5rem;
+    block-size: 1.75rem;
+    border: none;
+    background: none;
+    padding: 0;
+  }
+  input[type='color']:disabled {
+    opacity: 0.35;
+  }
+  output {
+    font-family: var(--sl-font-mono);
+    color: var(--sl-color-white);
+  }
+  .stage {
+    display: grid;
+    place-items: center;
+    min-height: 14rem;
+    padding: 1.5rem;
+    overflow-x: auto;
+    border-radius: 0.75rem;
+    background: var(--sl-color-gray-7, var(--sl-color-gray-6));
+    color: var(--sl-color-white);
+  }
+  .stage :global(svg) {
+    max-width: 100%;
+    height: auto;
+  }
+  .breakdown h3 {
+    font-size: var(--sl-text-base);
+    margin: 0 0 0.5rem;
+  }
+  .groups {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .groups :global(li) {
+    display: grid;
+    justify-items: center;
+    gap: 0.15rem;
+    padding: 0.5rem 0.6rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.5rem;
+    color: var(--sl-color-white);
+    min-width: 4.5rem;
+  }
+  .groups :global(li.dot) {
+    border: none;
+    align-content: center;
+    min-width: auto;
+    padding-inline: 0;
+  }
+  .groups :global(li.dot span) {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .groups :global(code) {
+    font-size: var(--sl-text-sm);
+  }
+  .groups :global(small) {
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-xs);
+  }
+  .status {
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-2);
+  }
+  .code {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+  .code pre {
+    margin: 0;
+    padding: 0.75rem 1rem;
+    overflow-x: auto;
+    border-radius: 0.5rem;
+    background: var(--sl-color-black);
+    border: 1px solid var(--sl-color-gray-5);
+    font-size: var(--sl-text-sm);
+  }
+</style>

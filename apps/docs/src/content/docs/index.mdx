@@ -1,0 +1,54 @@
+---
+title: Cistercian Numerals
+description: Render any number as Cistercian numerals in SVG, PNG, JPEG or WebP, from code or the command line.
+template: splash
+hero:
+  tagline: >-
+    Draw any number the way 13th-century Cistercian monks did: one glyph for 1 to 9999,
+    and a few more for everything else. SVG with zero dependencies, plus PNG, JPEG and WebP.
+  actions:
+    - text: Open the playground
+      link: /cistercian-numerals/playground/
+      icon: pencil
+    - text: Get started
+      link: /cistercian-numerals/getting-started/
+      icon: right-arrow
+      variant: secondary
+    - text: GitHub
+      link: https://github.com/karlnorling/cistercian-numerals
+      icon: github
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+import Glyph from '../../components/Glyph.astro';
+
+<div class="examples">
+  <Glyph value={1993} caption="1993" />
+  <Glyph value={9999} caption="9999" />
+  <Glyph value={12345} caption="12345" />
+  <Glyph value="3.14159" caption="3.14159" />
+  <Glyph value={-42} caption="-42" />
+</div>
+
+<CardGrid>
+  <Card title="Try any number" icon="pencil">
+    The [playground](/cistercian-numerals/playground/) draws whatever you type, shows the glyph for
+    each group of digits, and lets you download SVG, PNG, JPEG or WebP.
+  </Card>
+  <Card title="Beyond 9999" icon="add-document">
+    Large numbers use one glyph per four digits, and decimals continue after a dot. [See
+    how](/cistercian-numerals/how-it-works/).
+  </Card>
+  <Card title="Zero dependencies" icon="seti:svg">
+    `@cistercian/core` turns a number into an SVG string in any JavaScript runtime.
+  </Card>
+  <Card title="Images and CLI" icon="seti:image">
+    `@cistercian/raster` renders PNG, JPEG and WebP with sharp, and `@cistercian/cli` does it from
+    the terminal.
+  </Card>
+</CardGrid>
+
+<style>{`
+  .examples { display: flex; flex-wrap: wrap; justify-content: center; gap: 2rem; margin-block: 1rem 2.5rem; }
+`}</style>

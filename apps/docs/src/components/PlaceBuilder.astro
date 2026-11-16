@@ -1,0 +1,159 @@
+---
+// Build a number one corner at a time: a slider per place, each place drawn in its own colour.
+const places = [
+  { id: 'thousands', label: 'Thousands', corner: 'bottom left', start: 1 },
+  { id: 'hundreds', label: 'Hundreds', corner: 'bottom right', start: 9 },
+  { id: 'tens', label: 'Tens', corner: 'top left', start: 9 },
+  { id: 'units', label: 'Units', corner: 'top right', start: 3 },
+];
+---
+
+<div class="builder not-content">
+  <svg
+    id="pb-glyph"
+    viewBox="-30 -10 60 100"
+    width="150"
+    height="250"
+    role="img"
+    aria-labelledby="pb-total"
+  >
+    <path d="M0 0L0 80" class="stem"></path>
+    {places.map((p) => <path id={`pb-${p.id}`} class={`place ${p.id}`} />)}
+  </svg>
+
+  <div class="sliders">
+    {
+      places.map((p) => (
+        <label class={`slider ${p.id}`}>
+          <span>
+            {p.label} <small>({p.corner})</small>
+          </span>
+          <input type="range" min="0" max="9" step="1" value={p.start} data-place={p.id} />
+          <output id={`pb-${p.id}-out`}>{p.start}</output>
+        </label>
+      ))
+    }
+    <p class="total">
+      = <strong id="pb-total">1993</strong>
+    </p>
+  </div>
+</div>
+
+<script>
+  import { glyphStrokes } from '@cistercian/core';
+
+  const POWERS = { units: 1, tens: 10, hundreds: 100, thousands: 1000 } as const;
+  type Place = keyof typeof POWERS;
+  const inputs = [...document.querySelectorAll<HTMLInputElement>('[data-place]')];
+
+  function update() {
+    let total = 0;
+    for (const input of inputs) {
+      const place = input.dataset.place as Place;
+      const digit = Number(input.value);
+      total += digit * POWERS[place];
+      document.getElementById(`pb-${place}-out`)!.textContent = String(digit);
+      // Everything after the stem is this one digit's stroke.
+      const [, ...strokes] = glyphStrokes(digit * POWERS[place]);
+      const d = strokes
+        .map((line) => line.map(([x, y], i) => `${i ? 'L' : 'M'}${x * 20} ${y * 20}`).join(''))
+        .join('');
+      document.getElementById(`pb-${place}`)!.setAttribute('d', d);
+    }
+    document.getElementById('pb-total')!.textContent = String(total);
+  }
+
+  inputs.forEach((input) => input.addEventListener('input', update));
+  update();
+</script>
+
+<style>
+  .builder {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.5rem 2.5rem;
+    margin-block: 1.5rem;
+    padding: 1.25rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.75rem;
+    --units: #d9480f;
+    --tens: #1971c2;
+    --hundreds: #2f9e44;
+    --thousands: #9c36b5;
+  }
+  :global([data-theme='dark']) .builder {
+    --units: #ff922b;
+    --tens: #4dabf7;
+    --hundreds: #69db7c;
+    --thousands: #da77f2;
+  }
+  svg path {
+    fill: none;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .stem {
+    stroke: var(--sl-color-white);
+  }
+  .place.units {
+    stroke: var(--units);
+  }
+  .place.tens {
+    stroke: var(--tens);
+  }
+  .place.hundreds {
+    stroke: var(--hundreds);
+  }
+  .place.thousands {
+    stroke: var(--thousands);
+  }
+  .sliders {
+    display: grid;
+    gap: 0.6rem;
+    flex: 1 1 16rem;
+  }
+  .slider {
+    display: grid;
+    grid-template-columns: 11rem 1fr 1.5rem;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: var(--sl-text-sm);
+  }
+  .slider small {
+    color: var(--sl-color-gray-3);
+  }
+  .slider.units {
+    accent-color: var(--units);
+  }
+  .slider.tens {
+    accent-color: var(--tens);
+  }
+  .slider.hundreds {
+    accent-color: var(--hundreds);
+  }
+  .slider.thousands {
+    accent-color: var(--thousands);
+  }
+  output {
+    font-family: var(--sl-font-mono);
+    font-weight: 600;
+    text-align: right;
+  }
+  .total {
+    margin: 0.25rem 0 0;
+    font-size: var(--sl-text-2xl);
+  }
+  .total strong {
+    font-family: var(--sl-font-mono);
+  }
+  @media (max-width: 30rem) {
+    .slider {
+      grid-template-columns: 1fr 1.5rem;
+    }
+    .slider span {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

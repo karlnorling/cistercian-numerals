@@ -1,2 +1,4 @@
 dist
 CHANGELOG.md
+storybook-static
+apps/docs/.astro

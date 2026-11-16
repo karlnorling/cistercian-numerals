@@ -3,8 +3,8 @@ name: CI
 on:
   push:
     branches: [main]
+  # Every PR, including ones stacked on another branch.
   pull_request:
-    branches: [main]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -47,13 +47,22 @@ jobs:
         run: yarn lint
 
       - name: Type check
-        run: yarn type-check
+        run: |
+          yarn type-check
+          yarn workspace @cistercian-docs/app type-check
+          yarn workspace @cistercian-storybook/app type-check
 
       - name: Build
         run: yarn build
 
       - name: Test
         run: yarn test
+
+      # Deploys only happen on main, so catch a broken docs or Storybook build on the PR.
+      - name: Build docs and Storybook
+        run: |
+          yarn build-docs
+          yarn build-storybook --output-dir ../docs/dist/storybook
 
       - name: Smoke test the CLI and package entry points
         run: |

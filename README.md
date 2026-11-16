@@ -2,6 +2,8 @@
 
 Render any number as [Cistercian numerals](https://en.wikipedia.org/wiki/Cistercian_numerals): SVG with zero dependencies, plus PNG, JPEG and WebP through [sharp](https://sharp.pixelplumbing.com/).
 
+**[Docs and playground](https://karlnorling.github.io/cistercian-numerals/)** · [Storybook](https://karlnorling.github.io/cistercian-numerals/storybook/)
+
 | Package                                             | What it does                                     |
 | --------------------------------------------------- | ------------------------------------------------ |
 | [`@cistercian/core`](packages/@cistercian/core)     | Numbers to SVG. No dependencies, runs anywhere.  |
@@ -108,6 +110,8 @@ Takes every `toSvg` option, plus `format` (`png`, `jpeg`, `jpg` or `webp`; defau
 yarn install
 yarn test        # all packages, straight from source
 yarn build       # core, then raster, then cli
+yarn docs       # docs site with the playground, on localhost:4322
+yarn storybook  # Storybook on localhost:6006
 yarn examples   # regenerate examples/
 ```
 

@@ -3,18 +3,23 @@
   "private": true,
   "description": "Render any number as Cistercian numerals: SVG, PNG, JPEG and WebP, from code or the command line",
   "workspaces": [
-    "packages/@cistercian/*"
+    "packages/@cistercian/*",
+    "apps/*"
   ],
   "type": "module",
   "scripts": {
     "audit-actions": "node scripts/audit-action-inputs.mjs",
     "build": "yarn workspaces foreach -A --topological-dev --no-private run build",
+    "build-docs": "yarn workspace @cistercian-docs/app build",
+    "build-storybook": "yarn workspace @cistercian-storybook/app build-storybook",
     "changeset": "changeset",
+    "docs": "yarn workspace @cistercian-docs/app dev",
     "examples": "yarn build && node scripts/examples.mjs",
     "format": "oxfmt --write --ignore-path=.oxfmtignore .",
     "format:check": "oxfmt --check --ignore-path=.oxfmtignore .",
     "lint": "oxlint .",
     "prepare": "lefthook install",
+    "storybook": "yarn workspace @cistercian-storybook/app storybook",
     "test": "vitest run",
     "type-check": "tsc --noEmit",
     "version-packages": "changeset version && yarn install --mode=update-lockfile && yarn format"
