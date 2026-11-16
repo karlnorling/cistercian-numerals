@@ -3,6 +3,8 @@ title: '@cistercian/core'
 description: Render numbers as Cistercian numerals in SVG, with no dependencies.
 ---
 
+import Glyph from '../../../components/Glyph.astro';
+
 ```sh
 npm install @cistercian/core
 ```
@@ -21,8 +23,8 @@ toSvg('3.14159', { size: 200, color: '#7a2e0e', background: 'white' });
 | Option        | Default        | Notes                                                                 |
 | ------------- | -------------- | --------------------------------------------------------------------- |
 | `size`        | `100`          | Image height in pixels. The width follows from the number of glyphs.  |
-| `color`       | `currentColor` | Stroke colour. `currentColor` picks up the surrounding text colour.   |
-| `background`  | none           | Fill behind the glyphs.                                               |
+| `color`       | `currentColor` | Stroke colour or gradient. `currentColor` takes the text colour.      |
+| `background`  | none           | Colour or gradient behind the glyphs.                                 |
 | `strokeWidth` | `4`            | In viewBox units, where the stem is 80 long and each corner is 20×20. |
 | `linecap`     | `round`        | `round`, `square` or `butt`.                                          |
 | `gap`         | `20`           | Space between glyphs, in viewBox units.                               |
@@ -30,6 +32,50 @@ toSvg('3.14159', { size: 200, color: '#7a2e0e', background: 'white' });
 | `title`       | the number     | Accessible name. `false` leaves it out and sets `aria-hidden`.        |
 
 Throws a `TypeError` for text that isn't a decimal number and a `RangeError` for `NaN`, `Infinity` or a bad option.
+
+## Colours and gradients
+
+`color` and `background` take any CSS colour, or a gradient. Write a gradient the way you would in CSS, or pass an object:
+
+```js
+toSvg(123456789, {
+  color: 'linear-gradient(to right, #e03131, #f76707, #fab005, #40c057, #228be6, #7048e8, #be4bdb)',
+});
+
+toSvg('2026.1225', {
+  color: 'repeating-linear-gradient(135deg, #e03131 0 3%, #ffffff 3% 6%)',
+  background: 'radial-gradient(#2b8a3e, #0b3d20)',
+});
+
+toSvg(1993, {
+  color: { type: 'linear', angle: 90, stops: ['#e03131', { color: '#7048e8', offset: 0.8 }] },
+});
+```
+
+<div class="not-content" style="display:flex;flex-wrap:wrap;gap:1.5rem;align-items:end">
+  <Glyph
+    value={123456789}
+    strokeWidth={6}
+    color="linear-gradient(to right, #e03131, #f76707, #fab005, #40c057, #228be6, #7048e8, #be4bdb)"
+    caption="Rainbow"
+  />
+  <Glyph
+    value="2026.1225"
+    strokeWidth={7}
+    padding={16}
+    color="repeating-linear-gradient(135deg, #e03131 0 3%, #ffffff 3% 6%)"
+    background="radial-gradient(#2b8a3e, #0b3d20)"
+    caption="Christmas"
+  />
+</div>
+
+- `linear-gradient()` takes an angle (`90deg`, `0.25turn`) or a side (`to right`, `to bottom left`). The default runs top to bottom.
+- `radial-gradient()` spreads from the centre out to the corners.
+- `repeating-linear-gradient()` and `repeating-radial-gradient()` repeat their stops. Give a stop two positions, as in `red 0 3%`, for a hard-edged band: that's how the candy-cane stripes are made.
+- Stop positions are percentages. Stops without one are spaced evenly.
+- A gradient spans the whole image, not each glyph, so a long number runs through every colour once.
+
+`parseGradient(css)` turns a CSS gradient string into the object form, and returns `undefined` for a plain colour.
 
 ## Lower level
 

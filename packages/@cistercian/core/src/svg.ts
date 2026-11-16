@@ -1,4 +1,5 @@
 import { GLYPH_HEIGHT, GLYPH_WIDTH, glyphStrokes, type Polyline } from './glyph.js';
+import { escapeAttr as escape, num, resolvePaint, type Paint } from './paint.js';
 import { format, parse, type CistercianInput } from './parse.js';
 
 /** viewBox units per glyph unit: a quadrant is 20×20 and the stem is 80 long. */
@@ -7,10 +8,15 @@ const UNIT = 20;
 export interface SvgOptions {
   /** Height of the image in pixels. The width follows from the number of glyphs. Default 100. */
   size?: number;
-  /** Stroke and dot colour. Default `currentColor`, so the SVG takes the surrounding text colour. */
-  color?: string;
-  /** Fills the image behind the glyphs. Default: transparent. */
-  background?: string;
+  /**
+   * Stroke and dot colour. Default `currentColor`, so the SVG takes the surrounding text colour.
+   * Also takes a gradient, as a CSS string (`linear-gradient(90deg, #f00, #00f)`,
+   * `radial-gradient(gold, crimson)`) or a {@link Gradient} object. A gradient spans the
+   * whole image, so a long number shades from one end to the other.
+   */
+  color?: Paint;
+  /** Fills the image behind the glyphs: a colour or a gradient, as for `color`. Default: transparent. */
+  background?: Paint;
   /** Stroke width in viewBox units, where the stem is 80 long. Default 4. */
   strokeWidth?: number;
   /** Default `round`. */
@@ -83,16 +89,23 @@ export function toSvg(value: CistercianInput, options: SvgOptions = {}): string 
   };
   const width = (size * box.width) / box.height;
 
+  const stroke = resolvePaint(color, box, 'cistercian-color');
+  const fill =
+    background === undefined ? undefined : resolvePaint(background, box, 'cistercian-background');
+  // Equal gradients get equal ids, so one definition serves both.
+  const defs = [...new Set([fill?.def, stroke.def].filter(Boolean))].join('');
+
   const label = title === false ? 'aria-hidden="true"' : `role="img" aria-label="${escape(title)}"`;
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${[box.x, box.y, box.width, box.height].map(num).join(' ')}" width="${num(width)}" height="${num(size)}" ${label}>`,
     title === false ? '' : `<title>${escape(title)}</title>`,
-    background === undefined
+    defs ? `<defs>${defs}</defs>` : '',
+    fill === undefined
       ? ''
-      : `<rect x="${num(box.x)}" y="${num(box.y)}" width="${num(box.width)}" height="${num(box.height)}" fill="${escape(background)}"/>`,
-    `<path d="${subpaths.join('')}" fill="none" stroke="${escape(color)}" stroke-width="${num(strokeWidth)}" stroke-linecap="${linecap}" stroke-linejoin="round"/>`,
+      : `<rect x="${num(box.x)}" y="${num(box.y)}" width="${num(box.width)}" height="${num(box.height)}" fill="${escape(fill.value)}"/>`,
+    `<path d="${subpaths.join('')}" fill="none" stroke="${escape(stroke.value)}" stroke-width="${num(strokeWidth)}" stroke-linecap="${linecap}" stroke-linejoin="round"/>`,
     dot
-      ? `<circle cx="${num(dot.x)}" cy="${num(dot.y)}" r="${num(dotRadius)}" fill="${escape(color)}"/>`
+      ? `<circle cx="${num(dot.x)}" cy="${num(dot.y)}" r="${num(dotRadius)}" fill="${escape(stroke.value)}"/>`
       : '',
     '</svg>',
   ].join('');
@@ -102,12 +115,4 @@ function toPath(line: Polyline, centre: number): string {
   return line
     .map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${num(centre + x * UNIT)} ${num(y * UNIT)}`)
     .join('');
-}
-
-function num(value: number): string {
-  return String(Math.round(value * 1000) / 1000);
-}
-
-function escape(text: string): string {
-  return text.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 }

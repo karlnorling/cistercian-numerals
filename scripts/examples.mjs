@@ -18,6 +18,27 @@ for (const [name, value] of Object.entries(examples)) {
   await writeFile(new URL(`${name}.svg`, out), toSvg(value, style));
 }
 
+// Gradients: a rainbow across a long number, and candy-cane stripes for Christmas Day.
+await writeFile(
+  new URL('rainbow.svg', out),
+  toSvg(123456789, {
+    size: 120,
+    strokeWidth: 6,
+    color:
+      'linear-gradient(to right, #e03131, #f76707, #fab005, #40c057, #228be6, #7048e8, #be4bdb)',
+  }),
+);
+await writeFile(
+  new URL('christmas.svg', out),
+  toSvg('2026.1225', {
+    size: 120,
+    strokeWidth: 7,
+    padding: 16,
+    color: 'repeating-linear-gradient(135deg, #e03131 0 3%, #ffffff 3% 6%)',
+    background: 'radial-gradient(#2b8a3e, #0b3d20)',
+  }),
+);
+
 // Every digit in every place, laid out like the chart on Wikipedia.
 const cell = 60;
 const rows = [1, 10, 100, 1000].map((place, row) =>

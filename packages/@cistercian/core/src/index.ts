@@ -8,3 +8,4 @@ export {
   type Polyline,
 } from './glyph.js';
 export { toSvg, type SvgOptions } from './svg.js';
+export { parseGradient, type Gradient, type GradientStop, type Paint } from './paint.js';

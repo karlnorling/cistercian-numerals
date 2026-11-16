@@ -11,13 +11,20 @@ npx @cistercian/cli -42 -o minus.png
 
 Installed globally with `npm install -g @cistercian/cli`, the command is `cistercian`. The output format comes from the file extension. Without `--output`, it prints SVG.
 
-| Option                     | Notes                                                            |
-| -------------------------- | ---------------------------------------------------------------- |
-| `-o, --output <file>`      | `.svg`, `.png`, `.jpg`, `.jpeg` or `.webp`.                      |
-| `-s, --size <px>`          | Image height in pixels. Default 100.                             |
-| `-c, --color <color>`      | Stroke colour. Default `currentColor` for SVG, black for images. |
-| `-b, --background <color>` | Background colour. Default transparent, white for JPEG.          |
-| `--stroke-width <n>`       | Where the stem is 80 long. Default 4.                            |
-| `-q, --quality <1-100>`    | JPEG and WebP quality.                                           |
+| Option                     | Notes                                                                            |
+| -------------------------- | -------------------------------------------------------------------------------- |
+| `-o, --output <file>`      | `.svg`, `.png`, `.jpg`, `.jpeg` or `.webp`.                                      |
+| `-s, --size <px>`          | Image height in pixels. Default 100.                                             |
+| `-c, --color <color>`      | Stroke colour or CSS gradient. Default `currentColor` for SVG, black for images. |
+| `-b, --background <color>` | Background colour or CSS gradient. Default transparent, white for JPEG.          |
+| `--stroke-width <n>`       | Where the stem is 80 long. Default 4.                                            |
+| `-q, --quality <1-100>`    | JPEG and WebP quality.                                                           |
+
+Gradients use CSS syntax. Quote them for the shell:
+
+```sh
+cistercian 123456789 -o rainbow.png --stroke-width 6 \
+  -c 'linear-gradient(to right, #e03131, #f76707, #fab005, #40c057, #228be6, #7048e8, #be4bdb)'
+```
 
 Exits with `1` when the number can't be drawn and `2` for a usage error.

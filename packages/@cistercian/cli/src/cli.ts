@@ -12,8 +12,10 @@ Draws a number as Cistercian numerals. Prints SVG to stdout unless --output is g
 Options:
   -o, --output <file>      Write to a .svg, .png, .jpg, .jpeg or .webp file
   -s, --size <px>          Image height in pixels (default 100)
-  -c, --color <color>      Stroke colour (default currentColor for SVG, black for images)
-  -b, --background <color> Background colour (default transparent, white for JPEG)
+  -c, --color <color>      Stroke colour or CSS gradient (default currentColor for SVG,
+                           black for images)
+  -b, --background <color> Background colour or CSS gradient (default transparent,
+                           white for JPEG)
       --stroke-width <n>   Stroke width, where the stem is 80 long (default 4)
   -q, --quality <1-100>    JPEG and WebP quality
   -h, --help               Show this help
@@ -22,7 +24,8 @@ Options:
 Examples:
   cistercian 1993 > 1993.svg
   cistercian 3.14159 -o pi.webp --size 200
-  cistercian -42 -o minus.png`;
+  cistercian -42 -o minus.png
+  cistercian 1993 -o 1993.png -c 'linear-gradient(to right, red, blue)'`;
 
 const FORMATS: Record<string, RasterFormat | 'svg'> = {
   '.svg': 'svg',
