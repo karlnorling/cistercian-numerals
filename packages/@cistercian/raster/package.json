@@ -12,9 +12,9 @@
     "sharp",
     "webp"
   ],
-  "homepage": "https://github.com/karlnorling/cistercian#readme",
+  "homepage": "https://github.com/karlnorling/cistercian-numerals#readme",
   "bugs": {
-    "url": "https://github.com/karlnorling/cistercian/issues"
+    "url": "https://github.com/karlnorling/cistercian-numerals/issues"
   },
   "license": "MIT",
   "author": {
@@ -23,7 +23,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/karlnorling/cistercian.git",
+    "url": "git+https://github.com/karlnorling/cistercian-numerals.git",
     "directory": "packages/@cistercian/raster"
   },
   "files": [

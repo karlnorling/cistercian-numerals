@@ -2,7 +2,7 @@
 
 Draw any number as [Cistercian numerals](https://en.wikipedia.org/wiki/Cistercian_numerals) from the command line: SVG, PNG, JPEG or WebP.
 
-<img src="https://raw.githubusercontent.com/karlnorling/cistercian/main/examples/1993.svg" alt="1993" height="80"> <img src="https://raw.githubusercontent.com/karlnorling/cistercian/main/examples/negative.svg" alt="-42" height="80">
+<img src="https://raw.githubusercontent.com/karlnorling/cistercian-numerals/main/examples/1993.svg" alt="1993" height="80"> <img src="https://raw.githubusercontent.com/karlnorling/cistercian-numerals/main/examples/negative.svg" alt="-42" height="80">
 
 ```sh
 npx @cistercian/cli 1993 > 1993.svg
@@ -33,7 +33,7 @@ Examples:
   cistercian -42 -o minus.png
 ```
 
-See the [full documentation](https://github.com/karlnorling/cistercian#readme).
+See the [full documentation](https://github.com/karlnorling/cistercian-numerals#readme).
 
 ## License
 
