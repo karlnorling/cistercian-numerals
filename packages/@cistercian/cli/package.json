@@ -1,6 +1,6 @@
 {
   "name": "@cistercian/cli",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Command line tool that draws numbers as Cistercian numerals: SVG, PNG, JPEG or WebP",
   "keywords": [
     "cistercian",
