@@ -1,61 +1,19 @@
 {
-  "name": "cistercian",
-  "version": "0.0.0",
-  "description": "Render any number as Cistercian numerals: SVG with zero dependencies, plus PNG, JPEG and WebP via sharp",
-  "keywords": [
-    "cistercian",
-    "cistercian-numerals",
-    "glyph",
-    "jpeg",
-    "medieval",
-    "number",
-    "numerals",
-    "png",
-    "svg",
-    "webp"
-  ],
-  "homepage": "https://github.com/karlnorling/cistercian#readme",
-  "bugs": {
-    "url": "https://github.com/karlnorling/cistercian/issues"
-  },
-  "license": "MIT",
-  "author": {
-    "name": "Karl Norling",
-    "url": "https://github.com/karlnorling"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/karlnorling/cistercian.git"
-  },
-  "bin": "./dist/bin.js",
-  "files": [
-    "dist",
-    "!dist/**/*.map",
-    "README.md",
-    "LICENSE"
+  "name": "cistercian-monorepo",
+  "private": true,
+  "description": "Render any number as Cistercian numerals: SVG, PNG, JPEG and WebP, from code or the command line",
+  "workspaces": [
+    "packages/@cistercian/*"
   ],
   "type": "module",
-  "sideEffects": false,
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    },
-    "./raster": {
-      "types": "./dist/raster.d.ts",
-      "default": "./dist/raster.js"
-    },
-    "./package.json": "./package.json"
-  },
   "scripts": {
     "audit-actions": "node scripts/audit-action-inputs.mjs",
-    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "build": "yarn workspaces foreach -A --topological-dev --no-private run build",
     "changeset": "changeset",
     "examples": "yarn build && node scripts/examples.mjs",
     "format": "oxfmt --write --ignore-path=.oxfmtignore .",
     "format:check": "oxfmt --check --ignore-path=.oxfmtignore .",
     "lint": "oxlint .",
-    "prepack": "yarn build",
     "prepare": "lefthook install",
     "test": "vitest run",
     "type-check": "tsc --noEmit",
@@ -67,22 +25,13 @@
     "lefthook": "^2.2.2",
     "oxfmt": "^0.77.0",
     "oxlint": "^1.92.0",
-    "sharp": "^0.35.5",
     "typescript": "^6.0.2",
     "vite": "^8.3.7",
     "vitest": "^5.0.0",
     "yaml": "^2.9.1"
   },
-  "peerDependencies": {
-    "sharp": ">=0.33.0"
-  },
-  "peerDependenciesMeta": {
-    "sharp": {
-      "optional": true
-    }
-  },
   "engines": {
-    "node": ">= 20.0.0"
+    "node": ">= 24.0.0"
   },
   "packageManager": "yarn@4.18.1"
 }

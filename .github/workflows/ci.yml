@@ -57,9 +57,21 @@ jobs:
 
       - name: Smoke test the CLI and package entry points
         run: |
-          node dist/bin.js 1993 | grep -q '<title>1993</title>'
-          node -e "require('cistercian')" 
-          node --input-type=module -e "import('cistercian/raster').then(m => m.toImage(1)).then(b => { if (!b.length) process.exit(1) })"
+          node packages/@cistercian/cli/dist/bin.js 1993 | grep -q '<title>1993</title>'
+          node -e "require('@cistercian/core').toSvg(1)"
+          node --input-type=module -e "import('@cistercian/raster').then(m => m.toImage(1)).then(b => { if (!b.length) process.exit(1) })"
+
+      # publish.sh relies on `yarn pack` replacing workspace:^ ranges with real versions.
+      - name: Check packed manifests have no workspace ranges
+        run: |
+          for dir in packages/@cistercian/*/; do
+            (cd "$dir" && yarn pack --out package.tgz >/dev/null)
+            if tar -xOzf "${dir}package.tgz" package/package.json | grep -q 'workspace:'; then
+              echo "::error file=${dir}package.json::packed manifest still has a workspace: range"
+              exit 1
+            fi
+            rm "${dir}package.tgz"
+          done
 
   # ---------------------------------------------------------------------------
   # Release: only on pushes to main, after quality passes.

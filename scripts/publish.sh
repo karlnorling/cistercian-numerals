@@ -1,5 +1,5 @@
 #!/bin/bash
-# Publish the package if its version is not on the registry yet. Uses the npm CLI,
+# Publish every package whose version is not on the registry yet. Uses the npm CLI,
 # not `yarn npm publish`, so npm's OIDC exchange (trusted publishing) and provenance work.
 set -euo pipefail
 
@@ -15,21 +15,30 @@ if [ -n "${CHANGESETS_OUTPUT:-}" ]; then
   : > "$CHANGESETS_OUTPUT"
 fi
 
-name=$(node -p "require('./package.json').name")
-version=$(node -p "require('./package.json').version")
-
-if npm view "${name}@${version}" version &>/dev/null; then
-  echo "Skipping ${name}@${version} (already published)"
-  exit 0
-fi
-
-echo "Publishing ${name}@${version}..."
-npm publish --provenance --access public
-if [ -n "${CHANGESETS_OUTPUT:-}" ]; then
-  # Single-package repos tag as v<version>, so the action needs that exact tag.
-  printf '{"type":"git-tag","tag":"v%s","packageName":"%s"}\n' "$version" "$name" \
+# Appends one git-tag event. In a monorepo changesets tags as <name>@<version>,
+# and `packageName` must match the workspace package exactly.
+record_published() {
+  [ -n "${CHANGESETS_OUTPUT:-}" ] || return 0
+  printf '{"type":"git-tag","tag":"%s@%s","packageName":"%s"}\n' "$1" "$2" "$1" \
     >> "$CHANGESETS_OUTPUT"
-fi
+}
 
-# Create the git tag locally; the action pushes it and opens a GitHub release.
+for dir in packages/@cistercian/*/; do
+  [ -f "${dir}package.json" ] || continue
+  name=$(node -p "require('./${dir}package.json').name")
+  version=$(node -p "require('./${dir}package.json').version")
+  private=$(node -p "require('./${dir}package.json').private || false")
+  [ "$private" = "true" ] && continue
+  if npm view "${name}@${version}" version &>/dev/null; then
+    echo "Skipping ${name}@${version} (already published)"
+  else
+    echo "Publishing ${name}@${version}..."
+    # `yarn pack` swaps workspace:^ ranges for real versions, which npm publish can't do.
+    (cd "${dir}" && yarn pack --out package.tgz && npm publish package.tgz --provenance --access public && rm package.tgz)
+    record_published "$name" "$version"
+  fi
+done
+
+# Create the git tags locally; the action pushes the ones recorded above and
+# opens a GitHub release for each.
 yarn changeset tag

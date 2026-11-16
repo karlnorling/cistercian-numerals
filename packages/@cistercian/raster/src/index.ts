@@ -1,5 +1,4 @@
-import type { CistercianInput } from './parse.js';
-import { toSvg, type SvgOptions } from './svg.js';
+import { toSvg, type CistercianInput, type SvgOptions } from '@cistercian/core';
 
 export type RasterFormat = 'png' | 'jpeg' | 'jpg' | 'webp';
 
@@ -13,7 +12,7 @@ export interface RasterOptions extends SvgOptions {
 /**
  * Renders a number as a PNG, JPEG or WebP image of Cistercian numerals.
  *
- * Needs the optional peer dependency `sharp`. The colour defaults to black, and JPEG,
+ * Rasterises with sharp. The colour defaults to black, and JPEG,
  * which has no transparency, gets a white background unless you pass one.
  */
 export async function toImage(
@@ -40,8 +39,11 @@ async function loadSharp() {
   try {
     return (await import('sharp')).default;
   } catch (error) {
-    throw new Error('PNG, JPEG and WebP output needs sharp. Install it with: npm install sharp', {
-      cause: error,
-    });
+    throw new Error(
+      '@cistercian/raster could not load sharp. Reinstall it, or see https://sharp.pixelplumbing.com/install',
+      {
+        cause: error,
+      },
+    );
   }
 }

@@ -186,6 +186,36 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@cistercian/cli@workspace:packages/@cistercian/cli":
+  version: 0.0.0-use.local
+  resolution: "@cistercian/cli@workspace:packages/@cistercian/cli"
+  dependencies:
+    "@cistercian/core": "workspace:^"
+    "@cistercian/raster": "workspace:^"
+    typescript: "npm:^6.0.2"
+  bin:
+    cistercian: ./dist/bin.js
+  languageName: unknown
+  linkType: soft
+
+"@cistercian/core@workspace:^, @cistercian/core@workspace:packages/@cistercian/core":
+  version: 0.0.0-use.local
+  resolution: "@cistercian/core@workspace:packages/@cistercian/core"
+  dependencies:
+    typescript: "npm:^6.0.2"
+  languageName: unknown
+  linkType: soft
+
+"@cistercian/raster@workspace:^, @cistercian/raster@workspace:packages/@cistercian/raster":
+  version: 0.0.0-use.local
+  resolution: "@cistercian/raster@workspace:packages/@cistercian/raster"
+  dependencies:
+    "@cistercian/core": "workspace:^"
+    sharp: "npm:^0.35.5"
+    typescript: "npm:^6.0.2"
+  languageName: unknown
+  linkType: soft
+
 "@clack/core@npm:1.5.1":
   version: 1.5.1
   resolution: "@clack/core@npm:1.5.1"
@@ -1012,27 +1042,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cistercian@workspace:.":
+"cistercian-monorepo@workspace:.":
   version: 0.0.0-use.local
-  resolution: "cistercian@workspace:."
+  resolution: "cistercian-monorepo@workspace:."
   dependencies:
     "@changesets/cli": "npm:^3.0.3"
     "@types/node": "npm:^26.6.6"
     lefthook: "npm:^2.2.2"
     oxfmt: "npm:^0.77.0"
     oxlint: "npm:^1.92.0"
-    sharp: "npm:^0.35.5"
     typescript: "npm:^6.0.2"
     vite: "npm:^8.3.7"
     vitest: "npm:^5.0.0"
     yaml: "npm:^2.9.1"
-  peerDependencies:
-    sharp: ">=0.33.0"
-  peerDependenciesMeta:
-    sharp:
-      optional: true
-  bin:
-    cistercian: ./dist/bin.js
   languageName: unknown
   linkType: soft
 

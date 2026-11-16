@@ -1,6 +1,6 @@
 // Renders the README images into examples/. Run with: yarn examples
 import { mkdir, writeFile } from 'node:fs/promises';
-import { toSvg } from '../dist/index.js';
+import { toSvg } from '../packages/@cistercian/core/dist/index.js';
 
 const out = new URL('../examples/', import.meta.url);
 await mkdir(out, { recursive: true });

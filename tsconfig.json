@@ -12,7 +12,13 @@
     "sourceMap": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+    // Type-check and tests read sibling packages from source, so nothing needs building first.
+    // Package builds clear these and resolve each other's dist through node_modules.
+    "paths": {
+      "@cistercian/core": ["./packages/@cistercian/core/src/index.ts"],
+      "@cistercian/raster": ["./packages/@cistercian/raster/src/index.ts"]
+    }
   },
-  "include": ["src", "test", "vitest.config.ts"]
+  "include": ["packages/*/*/src", "packages/*/*/test", "vitest.config.ts"]
 }

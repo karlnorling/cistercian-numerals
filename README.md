@@ -2,6 +2,12 @@
 
 Render any number as [Cistercian numerals](https://en.wikipedia.org/wiki/Cistercian_numerals): SVG with zero dependencies, plus PNG, JPEG and WebP through [sharp](https://sharp.pixelplumbing.com/).
 
+| Package                                             | What it does                                     |
+| --------------------------------------------------- | ------------------------------------------------ |
+| [`@cistercian/core`](packages/@cistercian/core)     | Numbers to SVG. No dependencies, runs anywhere.  |
+| [`@cistercian/raster`](packages/@cistercian/raster) | Numbers to PNG, JPEG or WebP in Node, via sharp. |
+| [`@cistercian/cli`](packages/@cistercian/cli)       | The `cistercian` command.                        |
+
 <p>
   <img src="examples/1993.svg" alt="1993" height="80">
   <img src="examples/12345.svg" alt="12345" height="80">
@@ -13,24 +19,25 @@ Cistercian monks wrote any number from 1 to 9999 as a single glyph: a vertical s
 
 <img src="examples/digits.svg" alt="Digits 1 to 9 as units (top row), tens, hundreds and thousands (bottom row)" width="540">
 
-## Install
-
-```sh
-npm install cistercian
-npm install sharp   # only needed for PNG, JPEG and WebP
-```
-
 ## Usage
 
+```sh
+npm install @cistercian/core
+```
+
 ```js
-import { toSvg } from 'cistercian';
+import { toSvg } from '@cistercian/core';
 
 const svg = toSvg(1993);
 const red = toSvg(1993, { size: 200, color: '#c00', background: 'white' });
 ```
 
+```sh
+npm install @cistercian/raster
+```
+
 ```js
-import { toImage } from 'cistercian/raster';
+import { toImage } from '@cistercian/raster';
 import { writeFile } from 'node:fs/promises';
 
 await writeFile('1993.webp', await toImage(1993, { format: 'webp', size: 400 }));
@@ -39,12 +46,12 @@ await writeFile('1993.webp', await toImage(1993, { format: 'webp', size: 400 }))
 ### Command line
 
 ```sh
-npx cistercian 1993 > 1993.svg
-npx cistercian 3.14159 -o pi.webp --size 200
-npx cistercian -42 -o minus.png
+npx @cistercian/cli 1993 > 1993.svg
+npx @cistercian/cli 3.14159 -o pi.webp --size 200
+npx @cistercian/cli -42 -o minus.png
 ```
 
-Run `npx cistercian --help` for every option.
+Installed globally (`npm install -g @cistercian/cli`), the command is `cistercian`. Run `cistercian --help` for every option.
 
 ## Numbers beyond 1–9999
 
@@ -72,7 +79,7 @@ toSvg('123456789012345678901234567890'); // strings and bigints keep every digit
 
 ## API
 
-### `toSvg(value, options?)` → `string`
+### `toSvg(value, options?)` → `string` from `@cistercian/core`
 
 | Option        | Default        | Notes                                                                 |
 | ------------- | -------------- | --------------------------------------------------------------------- |
@@ -85,11 +92,11 @@ toSvg('123456789012345678901234567890'); // strings and bigints keep every digit
 | `padding`     | `10`           | Space around the glyphs, in viewBox units.                            |
 | `title`       | the number     | Accessible name. `false` leaves it out and sets `aria-hidden`.        |
 
-### `toImage(value, options?)` → `Promise<Buffer>` from `cistercian/raster`
+### `toImage(value, options?)` → `Promise<Buffer>` from `@cistercian/raster`
 
 Takes every `toSvg` option, plus `format` (`png`, `jpeg`, `jpg` or `webp`; default `png`) and `quality` (1–100). Strokes default to black. JPEG gets a white background unless you pass one.
 
-### Lower level
+### Lower level, from `@cistercian/core`
 
 - `parse(value)` → `{ negative, integer, fraction }`: the base-10000 groups that become glyphs.
 - `format(parsed)` → the canonical decimal string, e.g. `-12.5`.
@@ -99,7 +106,8 @@ Takes every `toSvg` option, plus `format` (`png`, `jpeg`, `jpg` or `webp`; defau
 
 ```sh
 yarn install
-yarn test
+yarn test        # all packages, straight from source
+yarn build       # core, then raster, then cli
 yarn examples   # regenerate examples/
 ```
 

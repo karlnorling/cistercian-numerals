@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs';
 import { writeFile } from 'node:fs/promises';
 import { extname } from 'node:path';
 import { parseArgs } from 'node:util';
-import type { RasterFormat } from './raster.js';
-import { toSvg, type SvgOptions } from './svg.js';
+import type { RasterFormat } from '@cistercian/raster';
+import { toSvg, type SvgOptions } from '@cistercian/core';
 
 const HELP = `Usage: cistercian <number> [options]
 
@@ -18,8 +18,6 @@ Options:
   -q, --quality <1-100>    JPEG and WebP quality
   -h, --help               Show this help
   -v, --version            Show the version
-
-PNG, JPEG and WebP output needs sharp: npm install sharp
 
 Examples:
   cistercian 1993 > 1993.svg
@@ -113,7 +111,8 @@ export async function run(argv: string[], io: Io = defaultIo): Promise<number> {
     if (format === 'svg') {
       await writeFile(values.output, toSvg(input, options));
     } else {
-      const { toImage } = await import('./raster.js');
+      // Loaded only for images, so SVG output never loads sharp's native binary.
+      const { toImage } = await import('@cistercian/raster');
       await writeFile(values.output, await toImage(input, { ...options, format, quality }));
     }
     return 0;
