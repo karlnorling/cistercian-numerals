@@ -22,6 +22,7 @@ hero:
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
 import Glyph from '../../components/Glyph.astro';
+import ColourExamples from '../../components/ColourExamples.astro';
 
 <div class="examples">
   <Glyph value={1993} caption="1993" />
@@ -30,6 +31,8 @@ import Glyph from '../../components/Glyph.astro';
   <Glyph value="3.14159" caption="3.14159" />
   <Glyph value={-42} caption="-42" />
 </div>
+
+<ColourExamples />
 
 <CardGrid>
   <Card title="Try any number" icon="pencil">

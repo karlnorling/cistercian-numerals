@@ -1,0 +1,78 @@
+---
+// The rainbow and Christmas examples, each linking to the playground with that look loaded.
+import { toSvg, type SvgOptions } from '@cistercian/core';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const examples: { name: string; value: string; options: SvgOptions & { strokeWidth: number } }[] = [
+  {
+    name: 'Rainbow',
+    value: '123456789',
+    options: {
+      strokeWidth: 6,
+      color:
+        'linear-gradient(to right, #e03131, #f76707, #fab005, #40c057, #228be6, #7048e8, #be4bdb)',
+    },
+  },
+  {
+    name: 'Christmas',
+    value: '2026.1225',
+    options: {
+      strokeWidth: 7,
+      color: 'repeating-linear-gradient(135deg, #e03131 0 3%, #ffffff 3% 6%)',
+      background: 'radial-gradient(#2b8a3e, #0b3d20)',
+    },
+  },
+];
+
+const link = ({ value, options }: (typeof examples)[number]) => {
+  const params = new URLSearchParams({ n: value, stroke: String(options.strokeWidth) });
+  if (typeof options.color === 'string') params.set('color', options.color);
+  if (typeof options.background === 'string') params.set('bg', options.background);
+  return `${base}/playground/#${params}`;
+};
+---
+
+<div class="colour-examples not-content">
+  {
+    examples.map((example) => (
+      <a href={link(example)} class="example">
+        <Fragment set:html={toSvg(example.value, { size: 110, title: false, ...example.options })} />
+        <span>
+          {example.name} <code>{example.value}</code>
+        </span>
+      </a>
+    ))
+  }
+</div>
+
+<style>
+  .colour-examples {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem 2rem;
+    margin-block: 1.5rem;
+  }
+  .example {
+    display: grid;
+    justify-items: center;
+    gap: 0.4rem;
+    padding: 0.75rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.75rem;
+    color: var(--sl-color-white);
+    text-decoration: none;
+    font-size: var(--sl-text-sm);
+  }
+  .example:hover,
+  .example:focus-visible {
+    border-color: var(--sl-color-accent);
+  }
+  .example :global(svg) {
+    max-width: 100%;
+    height: auto;
+  }
+  code {
+    font-size: var(--sl-text-xs);
+  }
+</style>
