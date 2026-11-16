@@ -8,7 +8,14 @@ function render({ value, title, ...options }: Args): HTMLElement {
   const root = document.createElement('div');
   root.style.color = '#24292f';
   try {
-    root.innerHTML = toSvg(value, { ...options, ...(title ? { title } : {}) });
+    // Empty text controls fall back to the defaults: currentColor and no background.
+    const { color, background, ...rest } = options;
+    root.innerHTML = toSvg(value, {
+      ...rest,
+      ...(color ? { color } : {}),
+      ...(background ? { background } : {}),
+      ...(title ? { title } : {}),
+    });
   } catch (error) {
     root.setAttribute('role', 'alert');
     root.style.color = '#c92a2a';
@@ -43,8 +50,15 @@ const meta = {
     gap: { control: { type: 'range', min: 0, max: 80, step: 2 } },
     padding: { control: { type: 'range', min: 0, max: 40, step: 1 } },
     linecap: { control: 'inline-radio', options: ['round', 'square', 'butt'] },
-    color: { control: 'color' },
-    background: { control: 'color' },
+    color: {
+      control: 'text',
+      description:
+        'A CSS colour, or a gradient: `linear-gradient(to right, red, blue)`, `radial-gradient(…)` or their `repeating-` forms.',
+    },
+    background: {
+      control: 'text',
+      description: 'A colour or a gradient, as for **color**. Empty for transparent.',
+    },
     title: {
       control: 'text',
       description: 'Accessible name. Leave empty to use the number.',
@@ -92,6 +106,41 @@ export const Styled: Story = {
     strokeWidth: 6,
     linecap: 'square',
     padding: 20,
+  },
+};
+
+export const Rainbow: Story = {
+  args: {
+    value: '123456789',
+    strokeWidth: 6,
+    color:
+      'linear-gradient(to right, #e03131, #f76707, #fab005, #40c057, #228be6, #7048e8, #be4bdb)',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'A linear gradient spans the whole image, so a long number runs through every colour.',
+      },
+    },
+  },
+};
+
+export const Christmas: Story = {
+  args: {
+    value: '2026.1225',
+    strokeWidth: 7,
+    padding: 16,
+    color: 'repeating-linear-gradient(135deg, #e03131 0 3%, #ffffff 3% 6%)',
+    background: 'radial-gradient(#2b8a3e, #0b3d20)',
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Candy-cane strokes from a repeating gradient with hard stops, on a pine-green radial background. The number is Christmas Day 2026.',
+      },
+    },
   },
 };
 

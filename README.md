@@ -16,6 +16,10 @@ Render any number as [Cistercian numerals](https://en.wikipedia.org/wiki/Cisterc
   <img src="examples/pi.svg" alt="3.14159" height="80">
   <img src="examples/negative.svg" alt="-42" height="80">
 </p>
+<p>
+  <img src="examples/rainbow.svg" alt="123456789 in rainbow colours" height="80">
+  <img src="examples/christmas.svg" alt="2026.1225 in red and white candy-cane stripes on green" height="80">
+</p>
 
 Cistercian monks wrote any number from 1 to 9999 as a single glyph: a vertical stem with one digit in each corner. Units go top right, tens top left, hundreds bottom right and thousands bottom left.
 
@@ -55,6 +59,25 @@ npx @cistercian/cli -42 -o minus.png
 
 Installed globally (`npm install -g @cistercian/cli`), the command is `cistercian`. Run `cistercian --help` for every option.
 
+### Colours and gradients
+
+`color` and `background` take any CSS colour, or a CSS gradient: `linear-gradient()`, `radial-gradient()` and their `repeating-` forms. A gradient spans the whole image, so a long number runs through every colour.
+
+```js
+// Rainbow
+toSvg(123456789, {
+  color: 'linear-gradient(to right, #e03131, #f76707, #fab005, #40c057, #228be6, #7048e8, #be4bdb)',
+});
+
+// Christmas: candy-cane stripes on pine green
+toSvg('2026.1225', {
+  color: 'repeating-linear-gradient(135deg, #e03131 0 3%, #ffffff 3% 6%)',
+  background: 'radial-gradient(#2b8a3e, #0b3d20)',
+});
+```
+
+A stop with two positions (`red 0 3%`) makes a hard-edged band. Gradients can also be objects: `{ type: 'linear', angle: 90, stops: ['red', { color: 'blue', offset: 0.8 }] }`.
+
 ## Numbers beyond 1–9999
 
 The historical system stops at 9999. This library extends it so every decimal number gets a drawing:
@@ -86,8 +109,8 @@ toSvg('123456789012345678901234567890'); // strings and bigints keep every digit
 | Option        | Default        | Notes                                                                 |
 | ------------- | -------------- | --------------------------------------------------------------------- |
 | `size`        | `100`          | Image height in pixels. The width follows from the number of glyphs.  |
-| `color`       | `currentColor` | Stroke colour. `currentColor` picks up the surrounding text colour.   |
-| `background`  | none           | Fill behind the glyphs.                                               |
+| `color`       | `currentColor` | Stroke colour or gradient. `currentColor` takes the text colour.      |
+| `background`  | none           | Colour or gradient behind the glyphs.                                 |
 | `strokeWidth` | `4`            | In viewBox units, where the stem is 80 long and each corner is 20×20. |
 | `linecap`     | `round`        | `round`, `square` or `butt`.                                          |
 | `gap`         | `20`           | Space between glyphs, in viewBox units.                               |
@@ -102,6 +125,7 @@ Takes every `toSvg` option, plus `format` (`png`, `jpeg`, `jpg` or `webp`; defau
 
 - `parse(value)` → `{ negative, integer, fraction }`: the base-10000 groups that become glyphs.
 - `format(parsed)` → the canonical decimal string, e.g. `-12.5`.
+- `parseGradient(css)` → the object form of a CSS gradient string, or `undefined` for a plain colour.
 - `glyphStrokes(n, { negative? })` → polylines for one glyph from 0 to 9999, in units where the stem runs from `(0, 0)` to `(0, 4)`. Use these to draw on a canvas or in another format.
 
 ## Development
