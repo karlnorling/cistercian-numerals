@@ -1,6 +1,6 @@
 {
   "name": "@cistercian/core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Render any number as Cistercian numerals in SVG, with zero dependencies",
   "keywords": [
     "cistercian",
