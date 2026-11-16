@@ -1,0 +1,10 @@
+import{n as e}from"./rolldown-runtime-sJBDdmOt.js";import{s as t}from"./chunk-W22LQPXL-D4uv3rSz.js";import{i as n,r}from"./react-DITjJg24.js";import{a as i,o as a}from"./blocks-Cnt9I1K0.js";function o(e){let t={a:`a`,code:`code`,h1:`h1`,li:`li`,p:`p`,strong:`strong`,ul:`ul`,...n(),...e.components};return(0,c.jsxs)(c.Fragment,{children:[(0,c.jsx)(i,{title:`Introduction`}),`
+`,(0,c.jsx)(t.h1,{id:`cistercian-numerals`,children:`Cistercian Numerals`}),`
+`,(0,c.jsxs)(t.p,{children:[`Stories for `,(0,c.jsx)(t.a,{href:`https://www.npmjs.com/package/@cistercian/core`,rel:`nofollow`,children:(0,c.jsx)(t.code,{children:`@cistercian/core`})}),`, which renders any number as `,(0,c.jsx)(t.a,{href:`https://en.wikipedia.org/wiki/Cistercian_numerals`,rel:`nofollow`,children:`Cistercian numerals`}),` in SVG.`]}),`
+`,(0,c.jsxs)(t.ul,{children:[`
+`,(0,c.jsxs)(t.li,{children:[(0,c.jsx)(t.strong,{children:`Number Builder`}),`: type any number in the `,(0,c.jsx)(t.code,{children:`value`}),` control and adjust every `,(0,c.jsx)(t.code,{children:`toSvg`}),` option.`]}),`
+`,(0,c.jsxs)(t.li,{children:[(0,c.jsx)(t.strong,{children:`Place Builder`}),`: build one glyph with a slider for each corner.`]}),`
+`,(0,c.jsxs)(t.li,{children:[(0,c.jsx)(t.strong,{children:`Gallery`}),`: a run of numbers, with a configurable start, count and step.`]}),`
+`]}),`
+`,(0,c.jsx)(t.p,{children:`Units go top right, tens top left, hundreds bottom right and thousands bottom left. Numbers above 9999 use one glyph per four digits, decimals continue after a dot, and negatives get a bar across the first stem.`}),`
+`,(0,c.jsxs)(t.p,{children:[`For downloads and shareable links, use the `,(0,c.jsx)(t.a,{href:`../playground/`,children:`playground`}),` in the docs.`]})]})}function s(e={}){let{wrapper:t}={...n(),...e.components};return t?(0,c.jsx)(t,{...e,children:(0,c.jsx)(o,{...e})}):o(e)}var c;function l(){return(l=e((()=>{c=t(),r(),a()})))()}l();export{s as default};
