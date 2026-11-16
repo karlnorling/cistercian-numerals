@@ -1,1 +1,0 @@
-import{t as e}from"./iframe-Buk-A24a.js";e();
