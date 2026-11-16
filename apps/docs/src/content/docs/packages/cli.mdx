@@ -1,0 +1,23 @@
+---
+title: '@cistercian/cli'
+description: Draw numbers as Cistercian numerals from the command line.
+---
+
+```sh
+npx @cistercian/cli 1993 > 1993.svg
+npx @cistercian/cli 3.14159 -o pi.webp --size 200
+npx @cistercian/cli -42 -o minus.png
+```
+
+Installed globally with `npm install -g @cistercian/cli`, the command is `cistercian`. The output format comes from the file extension. Without `--output`, it prints SVG.
+
+| Option                     | Notes                                                            |
+| -------------------------- | ---------------------------------------------------------------- |
+| `-o, --output <file>`      | `.svg`, `.png`, `.jpg`, `.jpeg` or `.webp`.                      |
+| `-s, --size <px>`          | Image height in pixels. Default 100.                             |
+| `-c, --color <color>`      | Stroke colour. Default `currentColor` for SVG, black for images. |
+| `-b, --background <color>` | Background colour. Default transparent, white for JPEG.          |
+| `--stroke-width <n>`       | Where the stem is 80 long. Default 4.                            |
+| `-q, --quality <1-100>`    | JPEG and WebP quality.                                           |
+
+Exits with `1` when the number can't be drawn and `2` for a usage error.

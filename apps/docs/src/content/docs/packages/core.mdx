@@ -1,0 +1,44 @@
+---
+title: '@cistercian/core'
+description: Render numbers as Cistercian numerals in SVG, with no dependencies.
+---
+
+```sh
+npm install @cistercian/core
+```
+
+## `toSvg(value, options?)`
+
+Returns an SVG string. `value` can be a `number`, `bigint` or decimal `string`.
+
+```js
+import { toSvg } from '@cistercian/core';
+
+toSvg(1993);
+toSvg('3.14159', { size: 200, color: '#7a2e0e', background: 'white' });
+```
+
+| Option        | Default        | Notes                                                                 |
+| ------------- | -------------- | --------------------------------------------------------------------- |
+| `size`        | `100`          | Image height in pixels. The width follows from the number of glyphs.  |
+| `color`       | `currentColor` | Stroke colour. `currentColor` picks up the surrounding text colour.   |
+| `background`  | none           | Fill behind the glyphs.                                               |
+| `strokeWidth` | `4`            | In viewBox units, where the stem is 80 long and each corner is 20×20. |
+| `linecap`     | `round`        | `round`, `square` or `butt`.                                          |
+| `gap`         | `20`           | Space between glyphs, in viewBox units.                               |
+| `padding`     | `10`           | Space around the glyphs, in viewBox units.                            |
+| `title`       | the number     | Accessible name. `false` leaves it out and sets `aria-hidden`.        |
+
+Throws a `TypeError` for text that isn't a decimal number and a `RangeError` for `NaN`, `Infinity` or a bad option.
+
+## Lower level
+
+```js
+import { format, glyphStrokes, parse } from '@cistercian/core';
+
+parse('-12.5'); // { negative: true, integer: [12], fraction: [5000] }
+format(parse('007.100')); // '7.1'
+glyphStrokes(1993); // [[[0, 0], [0, 4]], [[0, 0], [1, 1]], ...]
+```
+
+`glyphStrokes(n, { negative? })` returns polylines for one glyph from 0 to 9999. The stem runs from `(0, 0)` to `(0, 4)` and each corner is 1×1. Use it to draw on a canvas, in a PDF or anywhere else.

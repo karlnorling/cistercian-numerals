@@ -1,0 +1,15 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Introduction" />
+
+# Cistercian Numerals
+
+Stories for [`@cistercian/core`](https://www.npmjs.com/package/@cistercian/core), which renders any number as [Cistercian numerals](https://en.wikipedia.org/wiki/Cistercian_numerals) in SVG.
+
+- **Number Builder**: type any number in the `value` control and adjust every `toSvg` option.
+- **Place Builder**: build one glyph with a slider for each corner.
+- **Gallery**: a run of numbers, with a configurable start, count and step.
+
+Units go top right, tens top left, hundreds bottom right and thousands bottom left. Numbers above 9999 use one glyph per four digits, decimals continue after a dot, and negatives get a bar across the first stem.
+
+For downloads and shareable links, use the [playground](../playground/) in the docs.
